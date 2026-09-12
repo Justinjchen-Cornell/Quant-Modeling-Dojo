@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# matplotlib 缓存（脚本会固定到课程内目录）
+.mplconfig/
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 临时
+_tmp/
+*.tmp
