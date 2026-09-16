@@ -76,6 +76,7 @@ pip install numpy pandas matplotlib scipy requests
 │   ├── L2-压力测试/
 │   └── … L8
 ├── records/                # 学习记录（只记"学会了什么"）
+├── studies/                # 延伸研究（01 比值回归 · 跨体制样本 + PDF 报告）
 └── skills/modeling-coach/  # 教练技能（Claude Code 入口）
 ```
 
