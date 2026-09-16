@@ -110,7 +110,7 @@ def main():
     ax.set_title("10 张“照片” vs 3 个场景 —— GOR≥45 的未来 12 个月窗口（Brent）")
     ax.set_xlabel("每一行 = 该月起未来 12 个月的收益窗口；横向叠得越厚 = 看到的“未来”越是同一段")
     ax.legend(handles=[Patch(color=c, label=k) for k, c in colors.items()],
-              loc="lower right", fontsize=9)
+              loc="lower left", fontsize=9)
     fig.tight_layout()
     save(fig, "extra_overlap_demo")
 
