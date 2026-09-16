@@ -5,15 +5,17 @@
   A. 全部满足月（GOR≥阈值 的所有月份）→ 重叠样本，n 虚高
   B. 首次穿越（从 <阈值 升破 阈值的月份）→ 独立事件，n 很小
 关键：条件收益要和"全样本基准"比。
-改什么：HORIZON 12 → 6 / 24；AREA "brent" → "wti"
+改什么：命令行传参，如 python step2_conditional_returns.py 18（持有期）或 ... 18 wti（资产）；AREA "brent" → "wti"
 """
+import sys
+
 from common import load_gor, setup_style, save, C_RED, C_GREEN
 import matplotlib.pyplot as plt
 import numpy as np
 
 THRESHOLD = 45
-HORIZON = 12      # 持有期（月）← 亲手改这里
-AREA = "brent"    # brent 或 wti ← 或这里
+HORIZON = int(sys.argv[1]) if len(sys.argv) > 1 else 12   # 持有期（月），命令行可传
+AREA = sys.argv[2] if len(sys.argv) > 2 else "brent"      # brent 或 wti
 
 
 def stats(x):
@@ -55,6 +57,10 @@ def main():
               f"口径B只有 {b['n']} 个独立事件（样本这么小，谈'历史规律'要谨慎）")
     print()
     print("提示：口径A的 n 看起来很大，但相邻观测高度重叠，不能按独立样本解读。")
+    if a:
+        print("  口径A 的样本月份:", " ".join(f"{d:%Y-%m}" for d in fwd[mask_a].dropna().index))
+    if b:
+        print("  口径B 的独立事件:", " ".join(f"{d:%Y-%m}" for d in fwd[cross].dropna().index))
 
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.6))
 
@@ -90,7 +96,7 @@ def main():
     ax.legend(fontsize=9)
 
     fig.tight_layout()
-    save(fig, "step2_conditional")
+    save(fig, "step2_conditional" if (HORIZON == 12 and AREA == "brent") else f"step2_conditional_h{HORIZON}_{AREA}")
 
 
 if __name__ == "__main__":
