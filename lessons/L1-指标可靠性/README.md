@@ -37,7 +37,7 @@
 
 ```bash
 cd "lessons/L1-指标可靠性"
-python scripts/step1_distribution.py          # 分布与分位
+python scripts/step1_distribution.py          # 分布与分位（阈值可选：…40）
 python scripts/step2_conditional_returns.py   # 条件收益 vs 基准（双口径）
 python scripts/step3_robustness.py            # 起点 × 阈值 × 持有期网格
 ```

@@ -2,12 +2,14 @@
 """L1 步骤 1：GOR 长什么样？—— 分布与分位。
 
 看什么：样本区间 / 中位数 / 90、95、99 分位 / 45 的位置 / ≥45 的时间占比 / 独立片段数
-改什么：THRESHOLD 从 45 改成 40 / 50，观察"极端"叙事怎么变
+改什么：命令行传阈值（如 python step1_distribution.py 40），观察"极端"叙事怎么变
 """
+import sys
+
 from common import load_gor, setup_style, save, C_MAIN, C_RED, C_GREY
 import matplotlib.pyplot as plt
 
-THRESHOLD = 45  # ← 亲手改这里
+THRESHOLD = int(sys.argv[1]) if len(sys.argv) > 1 else 45  # 命令行可传：python step1_distribution.py 40
 
 
 def main():
@@ -53,7 +55,7 @@ def main():
     ax.set_xlabel("GOR")
 
     fig.tight_layout()
-    save(fig, "step1_distribution")
+    save(fig, "step1_distribution" if THRESHOLD == 45 else f"step1_distribution_t{THRESHOLD}")
 
 
 if __name__ == "__main__":
