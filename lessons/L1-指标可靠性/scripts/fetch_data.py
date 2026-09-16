@@ -5,7 +5,7 @@
 - 金价：datahub.io 月度金价（LBMA，1833 年起，月均值）
 - 油价：FRED CSV（DCOILBRENTEU / DCOILWTICO，1986 年起），日频 → 月均值
 
-输出：data/gor_monthly.csv（date, gold, brent, wti, gor_brent, gor_wti）
+输出：data/gor_monthly.csv（主样本：金价 + Brent/WTI）；data/gor_long.csv（长样本：金价 × WTI，1946+）
 口径：全部为"月均值"；只保留已结束的月份（不含当月进行中数据）。
 用法：python scripts/fetch_data.py
 """
@@ -63,6 +63,20 @@ def gold_akshare() -> pd.Series:
     return s.resample("ME").mean()
 
 
+def fred_monthly_direct(sid: str) -> pd.Series:
+    """FRED 本身就是月频的序列（如 WTISPLC）"""
+    r = requests.get(FRED_URL.format(sid=sid), timeout=30)
+    r.raise_for_status()
+    df = pd.read_csv(io.StringIO(r.text))
+    df.columns = ["date", "value"]
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
+    s = df.dropna().set_index("date")["value"]
+    s.index = s.index + pd.offsets.MonthEnd(0)
+    s.name = sid
+    return s
+
+
 def fred_monthly_mean(sid: str) -> pd.Series:
     """FRED 日频 → 月均值"""
     r = requests.get(FRED_URL.format(sid=sid), timeout=30)
@@ -77,7 +91,7 @@ def fred_monthly_mean(sid: str) -> pd.Series:
 
 
 def main() -> int:
-    print("[1/3] 金价（datahub / LBMA）……")
+    print("[1/4] 金价（datahub / LBMA）……")
     gold = None
     for name, fn in (("datahub", gold_datahub), ("Yahoo 分段", gold_yahoo_chunked), ("akshare", gold_akshare)):
         try:
@@ -90,7 +104,7 @@ def main() -> int:
         print("金价数据源全部失败，保留现有 CSV 不覆盖。")
         return 1
 
-    print("[2/3] FRED：布伦特 + WTI 油价（月均值）……")
+    print("[2/4] FRED：布伦特 + WTI 油价（月均值）……")
     brent = fred_monthly_mean("DCOILBRENTEU").rename("brent")
     wti = fred_monthly_mean("DCOILWTICO").rename("wti")
 
@@ -104,9 +118,25 @@ def main() -> int:
     df["gor_wti"] = df["gold"] / df["wti"]
     df = df[["date", "gold", "brent", "wti", "gor_brent", "gor_wti"]]
 
-    print(f"[3/3] 保存：{OUT}")
+    print(f"[3/4] 保存：{OUT}")
     df.to_csv(OUT, index=False, float_format="%.4f")
     print(f"      共 {len(df)} 行（{df['date'].min():%Y-%m} → {df['date'].max():%Y-%m}）")
+
+    # ---- 长样本（1946+）：金价 × WTI 月价 ----
+    print("[4/4] 长样本 gor_long.csv（金价 1833+ × WTI 1946+）……")
+    try:
+        wti_long = fred_monthly_direct("WTISPLC")
+        dl = pd.concat([gold.rename("gold"), wti_long.rename("wti")], axis=1).dropna()
+        dl = dl[dl.index.to_period("M") < now_month]
+        dl = dl.reset_index()
+        dl = dl.rename(columns={dl.columns[0]: "date"})
+        dl["gor_wti"] = dl["gold"] / dl["wti"]
+        dl = dl[["date", "gold", "wti", "gor_wti"]]
+        out_long = ROOT / "data" / "gor_long.csv"
+        dl.to_csv(out_long, index=False, float_format="%.4f")
+        print(f"      共 {len(dl)} 行（{dl['date'].min():%Y-%m} → {dl['date'].max():%Y-%m}）")
+    except Exception as e:  # noqa: BLE001
+        print("      长样本抓取失败（不影响主数据）:", str(e)[:80])
     return 0
 
 

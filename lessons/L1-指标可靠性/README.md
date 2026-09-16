@@ -30,6 +30,7 @@
 
 - 金价：datahub.io 月度金价（LBMA，该序列可回溯至 1833 年）
 - 油价：FRED 公开 CSV（Brent 1987+ / WTI 1986+，日频 → 月均值）
+- 长样本：`data/gor_long.csv`（金价 × WTI 月价，1946+；1971 前为布雷顿森林固定金价，仅供背景）
 
 刷新（可选，需要网络）：`python scripts/fetch_data.py`
 
@@ -56,3 +57,5 @@ python scripts/step3_robustness.py            # 起点 × 阈值 × 持有期网
 - `scripts/fetch_data.py` —— 数据抓取（多级 fallback）
 - `scripts/common.py` —— 路径 / 样式 / 出图工具
 - `scripts/step1_distribution.py` / `step2_conditional_returns.py` / `step3_robustness.py`
+- `scripts/step3_long_history.py` —— 长样本加餐（1971 起 56 年）
+- `scripts/extra_subcycle_check.py` —— 拆两条腿（油崩 vs 金涨驱动）
